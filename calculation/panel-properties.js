@@ -5,16 +5,15 @@
  *  - Gamma Method
  * 
  * How to use : 
- * const calculator = new ShearAnalogyMethod(length, beff, matchExcelBug);
+ * const calculator = new ShearAnalogyMethod(length, beff);
  * const properties = calculator.calculate(cltLayup);
  */
 
 // Base class for panel properties
 class PanelProperties {
-    constructor(length = 5, beff = 1000, matchExcelBug = false) {
+    constructor(length = 5, beff = 1000) {
         this.length = length; // meters
         this.beff = beff; // mm
-        this.matchExcelBug = matchExcelBug;
     }
 
     calculate(cltLayup) {
@@ -78,18 +77,15 @@ class ShearAnalogyMethod extends PanelProperties {
         }
 
         // Langkah 2: Hitung Neutral Axis (z_neutral)
-        // Di Excel, z_neutral dianggap 0 karena rumus h_i = ABS(y_i - CH53) dan CH53 kosong (0)
         let z_neutral = 0;
-        if (!this.matchExcelBug) {
-            // Fisika yang benar: hitung sum(E_i * t_i * y_i) / sum(E_i * t_i) untuk sumbu netral gabungan
-            let num = 0;
-            let den = 0;
-            for (let prop of layerPropertiesList) {
-                num += prop.E_i * prop.t_i * prop.y_i;
-                den += prop.E_i * prop.t_i;
-            }
-            z_neutral = den > 0 ? num / den : 0;
+        // Hitung sum(E_i * t_i * y_i) / sum(E_i * t_i) untuk sumbu netral gabungan
+        let num = 0;
+        let den = 0;
+        for (let prop of layerPropertiesList) {
+            num += prop.E_i * prop.t_i * prop.y_i;
+            den += prop.E_i * prop.t_i;
         }
+        z_neutral = den > 0 ? num / den : 0;
 
         // Langkah 3: Hitung h_i, inersia lokal, inersia parallel, dan EiIi
         let totalEiIi = 0;
@@ -174,13 +170,7 @@ class GammaMethod extends PanelProperties {
             
             const gamma1 = 1 / (1 + (Math.pow(Math.PI, 2) * E1 * A1) / (s_1 * Math.pow(L_ref, 2)));
             
-            let gamma3;
-            if (this.matchExcelBug) {
-                // Bug Excel: Menggunakan E1^2 (AA74^2) bukannya L_ref^2
-                gamma3 = 1 / (1 + (Math.pow(Math.PI, 2) * E5 * A5) / (s_3 * Math.pow(E1, 2)));
-            } else {
-                gamma3 = 1 / (1 + (Math.pow(Math.PI, 2) * E5 * A5) / (s_3 * Math.pow(L_ref, 2)));
-            }
+            const gamma3 = 1 / (1 + (Math.pow(Math.PI, 2) * E5 * A5) / (s_3 * Math.pow(L_ref, 2)));
 
             // Hitung letak sumbu netral baru (a2) diukur dari pusat T3
             const y1 = y_geom[0], y3 = y_geom[2], y5 = y_geom[4];
@@ -214,12 +204,7 @@ class GammaMethod extends PanelProperties {
                 
                 let EiIi = 0;
                 if (E_i > 0) {
-                    if (this.matchExcelBug) {
-                        // Bug visual Excel: Kolom EiIi malah menampilkan nilai beff * t_i * a_i^2 saja
-                        EiIi = I_parallel;
-                    } else {
-                        EiIi = E_i * (I_local + g_i * I_parallel);
-                    }
+                    EiIi = E_i * (I_local + g_i * I_parallel);
                 }
 
                 layerPropertiesList.push(new CLTLayerPropertiesType({
@@ -292,11 +277,7 @@ class GammaMethod extends PanelProperties {
                 
                 let EiIi = 0;
                 if (E_i > 0) {
-                    if (this.matchExcelBug) {
-                        EiIi = I_parallel;
-                    } else {
-                        EiIi = E_i * (I_local + g_i * I_parallel);
-                    }
+                    EiIi = E_i * (I_local + g_i * I_parallel);
                 }
 
                 layerPropertiesList.push(new CLTLayerPropertiesType({

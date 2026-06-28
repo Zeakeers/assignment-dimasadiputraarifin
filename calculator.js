@@ -13,7 +13,7 @@ class CLTCalculatorController {
         this.inputLength = document.getElementById('inputLength');
         this.inputBeff = document.getElementById('inputBeff');
         this.inputMethod = document.getElementById('inputMethod');
-        this.toggleExcelBug = document.getElementById('toggleExcelBug');
+
 
         this.layupVisualizer = document.getElementById('layupVisualizer');
         this.errorBlock = document.getElementById('errorBlock');
@@ -24,13 +24,13 @@ class CLTCalculatorController {
         this.resultsTable = document.getElementById('resultsTable');
         this.tableHeader = document.getElementById('tableHeader');
         this.tableBody = document.getElementById('tableBody');
-        this.bugInfoBlock = document.getElementById('bugInfoBlock');
+
     }
 
     bindEvents() {
         const inputs = [
             this.inputGrade, this.inputLayers, this.inputThickness,
-            this.inputLength, this.inputBeff, this.inputMethod, this.toggleExcelBug
+            this.inputLength, this.inputBeff, this.inputMethod
         ];
         
         inputs.forEach(input => {
@@ -62,7 +62,7 @@ class CLTCalculatorController {
         const length = parseFloat(this.inputLength.value);
         const beff = parseFloat(this.inputBeff.value);
         const method = this.inputMethod.value;
-        const matchExcelBug = this.toggleExcelBug.checked;
+
 
         // Validation checks
         if (isNaN(thickness) || thickness <= 0) {
@@ -78,12 +78,7 @@ class CLTCalculatorController {
             return;
         }
 
-        // Show/hide Excel Bug Info block
-        if (matchExcelBug) {
-            this.bugInfoBlock.style.display = 'block';
-        } else {
-            this.bugInfoBlock.style.display = 'none';
-        }
+
 
         // 1. Dapatkan Grade Material
         const materialGrade = MaterialGrade.getGrade(gradeName);
@@ -106,9 +101,9 @@ class CLTCalculatorController {
         // 4. Hitung menggunakan metode terpilih
         let calculator;
         if (method === 'Shear Analogy') {
-            calculator = new ShearAnalogyMethod(length, beff, matchExcelBug);
+            calculator = new ShearAnalogyMethod(length, beff);
         } else {
-            calculator = new GammaMethod(length, beff, matchExcelBug);
+            calculator = new GammaMethod(length, beff);
         }
 
         const results = calculator.calculate(layup);
